@@ -41,6 +41,44 @@ const today = new Date();
 </footer>
 <style>
 	footer {
+        /* The Spacing */
+        padding: 4em 1em; 
+        text-align: center;
+
+        /* The Milky Filter Logic */
+        background: rgba(0, 0, 0, 0.3); /* Subtle dark tint to help white text */
+        backdrop-filter: blur(12px);     /* Blurs the 3D pillars behind the footer */
+        -webkit-backdrop-filter: blur(12px); /* Safari support */
+        
+        /* The Border (The "Apple" edge) */
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        
+        /* Text Polish */
+        color: #ffffff;
+        font-weight: 500;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); /* Deepens the contrast */
+    }
+
+    .social-links {
+        display: flex;
+        justify-content: center;
+        gap: 1.5em;
+        margin-top: 1.5em;
+    }
+
+    .social-links a {
+        text-decoration: none;
+        color: rgba(255, 255, 255, 0.6); /* Slightly faded white */
+        transition: transform 0.2s ease, color 0.2s ease;
+    }
+
+    .social-links a:hover {
+        color: #ffffff;
+        transform: translateY(-3px); /* Interactive lift */
+    }
+
+
+	/*footer {
 		padding: 2em 1em 6em 1em;
 		background: transparent;
 		color: #ffffff;
@@ -58,5 +96,5 @@ const today = new Date();
 	}
 	.social-links a:hover {
 		color: #a1a1aa;
-	}
+	}*/
 </style>

@@ -34,13 +34,14 @@
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
         // 2. THE TOPOGRAPHY (FIX: Using InstancedMesh for Performance)
-        const size = 12;
-        const count = Math.pow(size * 2 + 1, 2);
-        const geometry = new THREE.BoxGeometry(0.9, 1, 0.9);
+        const size = 35;
+        const step = 0.4; // The smaller the step, the "finer" the grid
+        const count = Math.pow((size * 2 / step) + 1, 2);
+        const geometry = new THREE.BoxGeometry(0.4, 1, 0.4);
         const material = new THREE.MeshStandardMaterial({ 
-            color: 0x1a1a1a, 
-            roughness: 0.3,
-            metalness: 0.2
+            color: 0x050505, 
+            roughness: 0.15,
+            metalness: 0.9
         });
 
         const iMesh = new THREE.InstancedMesh(geometry, material, count);
@@ -50,8 +51,8 @@
         const dummy = new THREE.Object3D();
         let i = 0;
 
-        for (let x = -size; x <= size; x++) {
-            for (let z = -size; z <= size; z++) {
+        /*for (let x = -size; x <= size; x += step) {
+            for (let z = -size; z <= size; z += step) {
                 const dist = Math.sqrt(x*x + z*z);
                 const h = Math.cos(dist * 0.5) * 2 + Math.sin(x * 0.5) * 2 + 3;
                 
@@ -61,39 +62,58 @@
                 dummy.updateMatrix();
                 iMesh.setMatrixAt(i++, dummy.matrix);
             }
-        }
+        }*/
         scene.add(iMesh);
 
-        // 3. THE LIGHTS
-        const ambient = new THREE.AmbientLight(0xffffff, 0.1);
+       // --- 3. THE ULTIMATE STUDIO RIG (DIAGONAL OVERHAUL) ---
+
+        // A. Global Fill
+        const ambient = new THREE.AmbientLight(0xffffff, 0.2); 
         scene.add(ambient);
 
-        const light = new THREE.PointLight(0x0066ff, 150, 60);
+        // B. Interaction Lights (Mouse)
+        const light = new THREE.PointLight(0xffffff, 600, 150);
         light.castShadow = true;
-        light.shadow.mapSize.set(1024, 1024); // Lowered slightly for performance stability
-        light.shadow.bias = -0.001;
+        light.shadow.mapSize.set(2048, 2048);
+        light.shadow.bias = -0.0001;
         scene.add(light);
 
-        const whiteLight = new THREE.PointLight(0xffffff, 80, 50);
+        const whiteLight = new THREE.PointLight(0xe0eaff, 400, 150);
         scene.add(whiteLight);
 
-        // --- CORNER LIGHTS (The Accents) ---
-        const cornerIntensity = 150;
-        const cornerDist = 60;
-        
-        // We use the 'size' variable here so lights stay at the grid edges
-        const corners = [
-            { x:  size - 1, y: 25, z:  size - 1, color: 0xff0055 }, // Hot Pink
-            { x: -size + 1, y: 25, z:  size - 1, color: 0x00ffcc }, // Cyan
-            { x:  size - 1, y: 25, z: -size + 1, color: 0xffff00 }, // Yellow
-            { x: -size, y: -100, z: -size, color: 0x7700ff }  // Purple
+        // C. The Diagonal Array (The "X" Setup)
+        // We place lights at the mid-points of the diagonals to fill the canyon.
+        const diagDist = size * 0.7; // Position them 70% of the way out
+        const diagonalLights = [
+            { x:  diagDist, y: 45, z:  diagDist, color: 0xffffff, int: 1200 }, // Top Right
+            { x: -diagDist, y: 45, z: -diagDist, color: 0xffffff, int: 1200 }, // Bottom Left
+            { x: -diagDist, y: 45, z:  diagDist, color: 0xffffff, int: 1200 }, // Top Left
+            { x:  diagDist, y: 45, z: -diagDist, color: 0xffffff, int: 1200 },  // Bottom Right
+            {x: 0, y: 10, z: 0, color: 0xffffff, int:1200},
+            {x: -diagDist, y: 10, z: 4, color: 0xffffff, int:1200},
+            {x: -8, y: 10, z: -diagDist, color: 0xffffff, int:1200},
+            {x: -size, y: 10, z: -size, color: 0xffffff, int:1200},
+            {x: - 8, y: 10, z: size / 2, color: 0xffffff, int:1200},
+            {x: size / 5, z: 10, y: -size / 10, color: 0xffffff, int: 1200}
+
         ];
 
-        corners.forEach(c => {
-            const cLight = new THREE.PointLight(c.color, cornerIntensity, cornerDist);
-            cLight.position.set(c.x, 5, c.z); 
-            scene.add(cLight);
+        diagonalLights.forEach(d => {
+            const dLight = new THREE.PointLight(d.color, d.int, 400); // 400 range to reach center
+            dLight.position.set(d.x, d.y, d.z);
+            dLight.decay = 2;
+            scene.add(dLight);
         });
+
+        // D. The Master Rim Light (Back Center)
+        // This is the one that creates the "Apple" rim highlight from the back.
+        const rimLight = new THREE.PointLight(0xffffff, 2500, 600);
+        rimLight.position.set(0, 70, -size); 
+        scene.add(rimLight);
+
+        // E. Rendering Physics
+        renderer.toneMapping = THREE.ReinhardToneMapping;
+        renderer.toneMappingExposure = 1.8;
 
         // 4. INTERACTION
         const mouse = new THREE.Vector2();
@@ -122,8 +142,60 @@
 
         // 5. ANIMATION LOOP
         function animate() {
+
             requestAnimationFrame(animate);
-            
+    
+            const time = performance.now() * 0.0001; // Multiplier of 0.0001 makes it EXTREMELY slow
+
+            // 2. Create a "focal point" that slowly drifts in a circle
+            // This prevents the waves from always feeling centered at 0,0.
+            const focusX = Math.sin(time * 5) * 3; // Drifts ±3 units on X
+            const focusZ = Math.cos(time * 5) * 3; // Drifts ±3 units on Z
+
+            let i = 0;
+            // We re-run the loop logic to update positions every frame
+            for (let x = -size; x <= size; x += step) {
+                for (let z = -size; z <= size; z += step) {
+                    // --- The Core Math ---
+        
+                    // 3. Coordinate relative to the *moving* focus point
+                    const dx = x - focusX;
+                    const dz = z - focusZ;
+
+                    // 4. Manfred Distance (creates square/diamond ripple base)
+                    const distFocus = Math.abs(dx) + Math.abs(dz);
+
+                    // 5. Polar Angle (creates a twisting spiral effect)
+                    const angle = Math.atan2(dz, dx);
+
+                    // 6. Layered Interference (The "Unique" Part)
+                    // Wave A (Square radial ripples, moving outwards from focal point)
+                    // Wave B (A static geometric grid pattern that interacts with Wave A)
+                    const waveA = Math.sin(distFocus * 0.5 - time * 15 + angle);
+                    const waveB = Math.sin(x * 0.2) * Math.cos(z * 0.2); // Static grid
+                    
+                    // 7. Combine & Refine:
+                    // By multiplying the raw sine wave, we create smooth, flowing "ridges"
+                    // rather than harsh peaks, looking much better in slow motion.
+                    const waveCombined = Math.abs(waveA * waveB); // Bloom interaction
+                    const smoothHeight = Math.pow(waveCombined, 1.5); // Smoother gradients
+
+                    // Final Height calculation (Base: 0.5, Peak: 14)
+                    const h = (smoothHeight * 14) + 0.5;
+
+                    // Position dummy and update matrix
+                    dummy.position.set(x, h/8, z);
+                    dummy.scale.set(1, h, 1);
+                    dummy.updateMatrix();
+                    
+                    iMesh.setMatrixAt(i++, dummy.matrix);
+                }
+            }
+
+            // MANDATORY: Tell Three.js the instance matrix has changed
+            iMesh.instanceMatrix.needsUpdate = true;
+
+            // Interaction Light logic (Keep your existing raycaster code)
             raycaster.setFromCamera(mouse, camera);
             if (raycaster.ray.intersectPlane(plane, point)) {
                 light.position.lerp(new THREE.Vector3(point.x, 6, point.z), 0.05);
@@ -132,6 +204,16 @@
             
             renderer.render(scene, camera);
         }
+            /*requestAnimationFrame(animate);
+            
+            raycaster.setFromCamera(mouse, camera);
+            if (raycaster.ray.intersectPlane(plane, point)) {
+                light.position.lerp(new THREE.Vector3(point.x, 6, point.z), 0.05);
+                whiteLight.position.lerp(new THREE.Vector3(point.x, 8, point.z), 0.05);
+            }
+            
+            renderer.render(scene, camera);*/
+        
 
         // Handle Resizing
         window.addEventListener('resize', () => {

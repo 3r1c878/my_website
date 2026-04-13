@@ -14,13 +14,66 @@ import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
 	<body>
 		<Background3D /><Header />
 		<main>
-			<h1>Hey, welcome to my website!</h1>
-			<p>
-				I am currently 20 years old, a CS student at ETH Zurich and 
-				fascinated by math, coding and theoretical problems in cs.
-			</p>
-			
+			<section class="glass-card">
+				<h1>Hey, welcome to my website!</h1>
+				<p>
+					I am Eric, 20 years old and a CS student at ETH Zurich. I am 
+					fascinated by math, coding and theoretical problems in CS.
+				</p>
+			</section>
 		</main>
 		<Footer />
 	</body>
 </html>
+
+<style>
+    main {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 80vh; /* Centers the card vertically */
+        padding: 2rem;
+    }
+
+    .glass-card {
+        /* 1. Dimensions & Centering */
+        max-width: 600px;
+        padding: 3rem;
+        text-align: center;
+        
+        /* 2. The High-End "Glass" look */
+        background: rgba(10, 10, 10, 0.4); /* Darker base for better contrast */
+        backdrop-filter: blur(20px) saturate(180%); /* Stronger blur + saturation boost */
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        
+        /* 3. The "Apple" Rounded Corners */
+        border-radius: 24px; /* Large, smooth radius */
+        
+        /* 4. The "Rim" Lighting (Essential for high-end) */
+        /* This simulates light hitting the top edge of the glass */
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        
+        /* 5. Layered Depth (Shadows) */
+        box-shadow: 
+            0 4px 6px -1px rgba(0, 0, 0, 0.3),
+            0 20px 25px -5px rgba(0, 0, 0, 0.4),
+            inset 0 0 20px rgba(255, 255, 255, 0.02); /* Very subtle inner glow */
+
+        color: white;
+    }
+
+    h1 {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        letter-spacing: -0.02em; /* Tighter tracking looks more professional */
+        background: linear-gradient(to bottom, #ffffff, #a1a1aa); /* Subtle text gradient */
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    p {
+        line-height: 1.6;
+        color: rgba(255, 255, 255, 0.8); /* Slightly dimmed for hierarchy */
+        font-size: 1.1rem;
+    }
+</style>
