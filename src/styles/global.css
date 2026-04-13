@@ -209,13 +209,44 @@ hr {
     border: none;
     border-top: 1px solid var(--accent-dark); /* A subtle visible line */
 }
-@media (max-width: 720px) {
-	body {
-		font-size: 18px;
-	}
-	main {
-		padding: 1em;
-	}
+/* --- MOBILE RESPONSIVENESS (COMBINED) --- */
+@media (max-width: 768px) {
+    /* From your original code: keeps base text highly readable on phones */
+    body {
+        font-size: 18px;
+    }
+
+    /* The Glass Card Mobile Fix */
+    main {
+        margin: 1.5rem auto;       /* Brings it closer to the top edge */
+        padding: 1.5rem;           /* Tighter internal padding */
+        border-radius: 20px;       /* Slightly less rounded to save screen space */
+        width: 100%;               
+        max-width: calc(100% - 2rem); /* Ensures it doesn't touch the exact edge of the screen */
+    }
+
+    .hero-image {
+        margin-bottom: 1.5rem;
+    }
+
+    .hero-image img {
+        border-radius: 12px;       /* Scale down the image rounding to match */
+    }
+
+    h1 {
+        font-size: 2.2rem;         /* Shrink the massive header so it doesn't wrap badly */
+        margin-bottom: 1rem;
+    }
+
+    p {
+        font-size: 1.05rem;        
+        line-height: 1.6;
+    }
+
+    .contact-section {
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+    }
 }
 
 .sr-only {
