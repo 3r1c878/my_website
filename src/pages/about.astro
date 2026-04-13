@@ -74,6 +74,17 @@ import { Image } from 'astro:assets';
 </html>
 
 <style>
+
+			/* --- 1. THE FULL-SCREEN RESET (Fixes iPhone White Borders) --- */
+			html, body {
+				margin: 0;
+				padding: 0;
+				width: 100%;
+				height: 100%;
+				overflow-x: hidden;
+				background-color: #050505;
+				overscroll-behavior-y: none; /* Kills the scroll bounce */
+			}
             /* Essential: Keep the canvas visible */
             body {
                 background-color: #050505; 
@@ -148,4 +159,40 @@ import { Image } from 'astro:assets';
                 color: #0066ff; /* Matches your 3D blue accent */
                 text-decoration-color: #0066ff;
             }
+			@media (max-width: 768px) {
+				body {
+					font-size: 18px;
+				}
+
+				main {
+					margin: 1.5rem auto;       
+					padding: 1.5rem;           
+					border-radius: 20px;       
+					width: 100%;               
+					max-width: calc(100% - 2rem); 
+				}
+
+				.hero-image {
+					margin-bottom: 1.5rem;
+				}
+
+				.hero-image img {
+					border-radius: 12px;       
+				}
+
+				/* Forces perfect centering on mobile */
+				h1 {
+					font-size: 2.2rem;         
+					margin-bottom: 1rem;
+					text-align: center; 
+				}
+
+				p {
+					font-size: 1.05rem;        
+					line-height: 1.6;
+					text-align: center; 
+					margin-left: auto;
+					margin-right: auto;
+				}
+			}
         </style>

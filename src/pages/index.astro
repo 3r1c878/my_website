@@ -27,6 +27,14 @@ import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
 </html>
 
 <style>
+	html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow-x: hidden;
+        overscroll-behavior-y: none;
+    }
     main {
         display: flex;
         align-items: center;
@@ -75,5 +83,30 @@ import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
         line-height: 1.6;
         color: rgba(255, 255, 255, 0.8); /* Slightly dimmed for hierarchy */
         font-size: 1.1rem;
+    }
+	/* --- 3. MOBILE RESPONSIVENESS --- */
+    @media (max-width: 768px) {
+        main {
+            padding: 1rem; /* Less padding on the outside */
+            min-height: 75vh; /* Keep it nicely centered vertically */
+        }
+
+        .glass-card {
+            padding: 2rem 1.5rem; /* Cut the internal padding in half */
+            border-radius: 20px;  /* Slightly smaller corner radius */
+            width: 100%;          /* Ensure it spans the available space */
+        }
+
+        h1 {
+            font-size: 2rem;      /* Shrink header to prevent bad text wrapping */
+            text-align: center;
+        }
+
+        p {
+            font-size: 1.05rem;
+            text-align: center;
+            margin-left: auto;
+            margin-right: auto;
+        }
     }
 </style>
