@@ -4,6 +4,7 @@ import Footer from '../components/Footer.astro';
 import Header from '../components/Header.astro';
 import Background3D from '../components/Background3D.astro'
 import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+import Analytics from '@vercel/analytics/astro';
 ---
 
 <!doctype html>
@@ -23,6 +24,7 @@ import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
 			</section>
 		</main>
 		<Footer />
+		<Analytics />
 	</body>
 </html>
 
