@@ -5,7 +5,7 @@
  */
 
 :root {
-	--accent: #ffffff; /* Clean, professional blue */
+	--accent: #0A84FF; /* Clean, professional blue */
     --accent-dark: #a1a1aa;
 	--black: 15, 18, 25;
 	--gray: 96, 115, 159;
@@ -218,6 +218,27 @@ blockquote {
 hr {
     border: none;
     border-top: 1px solid var(--accent-dark); /* A subtle visible line */
+}
+.glass-card {
+    /* 1. Higher-fidelity Glass */
+    background: rgba(10, 10, 10, 0.35); /* Darker for better text contrast */
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    
+    border-radius: 28px;
+    
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-top: 1px solid rgba(255, 255, 255, 0.2); /* Makes it pop against the black void */
+    
+    /* 4. Deep Void Shadows */
+    box-shadow: 
+        0 0 0 1px rgba(0, 0, 0, 0.5),
+        0 20px 50px -12px rgba(0, 0, 0, 0.9);
+        
+    /* Center it if used in a flex container */
+    max-width: 720px;
+    width: 100%;
+    margin: auto;
 }
 /* --- MOBILE RESPONSIVENESS (COMBINED) --- */
 @media (max-width: 768px) {

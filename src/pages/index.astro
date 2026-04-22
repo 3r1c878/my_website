@@ -46,24 +46,18 @@ import Analytics from '@vercel/analytics/astro';
     }
 
     .glass-card {
-        /* 1. Dimensions & Centering */
         max-width: 600px;
         padding: 3rem;
         text-align: center;
         
-        /* 2. The High-End "Glass" look */
         background: rgba(10, 10, 10, 0.4); /* Darker base for better contrast */
         backdrop-filter: blur(20px) saturate(180%); /* Stronger blur + saturation boost */
         -webkit-backdrop-filter: blur(20px) saturate(180%);
         
-        /* 3. The "Apple" Rounded Corners */
         border-radius: 24px; /* Large, smooth radius */
         
-        /* 4. The "Rim" Lighting (Essential for high-end) */
-        /* This simulates light hitting the top edge of the glass */
         border: 1px solid rgba(255, 255, 255, 0.12);
-        
-        /* 5. Layered Depth (Shadows) */
+
         box-shadow: 
             0 4px 6px -1px rgba(0, 0, 0, 0.3),
             0 20px 25px -5px rgba(0, 0, 0, 0.4),
