@@ -16,11 +16,14 @@ import Analytics from '@vercel/analytics/astro';
 		<Background3D /><Header />
 		<main>
 			<section class="glass-card">
-				<h1>Hey, welcome to my website!</h1>
+				<h1>Hi, welcome to my website!</h1>
 				<p>
-					I am Eric, 20 years old and a CS student at ETH Zurich. I am 
-					fascinated by math, coding and theoretical problems in CS.
+					I am Eric, 20 years old and a CS student at ETH Zurich. I love math, 
+                    coding and theoretical problems in CS. Stay tuned for future projects
 				</p>
+                <p>
+                    Hint: Use a 120Hz monitor for an even smoother animation ;)
+                </p>
 			</section>
 		</main>
 		<Footer />
@@ -64,6 +67,27 @@ import Analytics from '@vercel/analytics/astro';
             inset 0 0 20px rgba(255, 255, 255, 0.02); /* Very subtle inner glow */
 
         color: white;
+        transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    }
+
+    .glass-card:hover {
+        /* Lifts the card up 4px, but keeps the GPU acceleration active */
+        transform: translateY(-4px) translateZ(0); 
+        
+        border-color: rgba(0, 150, 255, 0.6); 
+
+            box-shadow: 
+                /* 1. SUBTLE INNER FROSTED BLUE */
+                inset 0 0 20px 2px rgba(0, 150, 255, 0.15), /* Soft, icy inner haze */
+                inset 0 0 5px 1px rgba(0, 150, 255, 0.3),  /* Tiny rim highlight */
+                
+                /* 2. PROMINENT OUTER FROSTED BLUE */
+                0 0 20px 5px rgba(0, 150, 255, 0.3),  /* Tight, bright core of the outer glow */
+                0 0 50px 15px rgba(0, 150, 255, 0.2), /* Soft, wide diffusion into the dark background */
+                
+                /* 3. The physical drop shadows keeping it "lifted" */
+                0 10px 15px -3px rgba(0, 0, 0, 0.4),
+                0 25px 35px -5px rgba(0, 0, 0, 0.5);
     }
 
     h1 {
