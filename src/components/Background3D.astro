@@ -208,6 +208,10 @@
                 targetSpeed = play ? 1 : 0;
             };
 
+            window.isCanyonPlaying = () => {
+                return targetSpeed === 1;
+            };
+
             // 5. The animation loop
             const clock = new THREE.Clock();
             let deltaAccumulator = 0;
@@ -216,27 +220,12 @@
             function animate() {
                 requestAnimationFrame(animate);
 
-                const delta = Math.min(clock.getDelta(), 0.1);
-                deltaAccumulator += delta;
+                const delta = Math.min(clock.getDelta(), 0.1); 
                 
-                if (deltaAccumulator < interval120) return;
+                const engineLerp = Math.min(3.0 * delta, 1.0);
+                currentSpeed += (targetSpeed - currentSpeed) * engineLerp;
+                shaderTime += (0.05 * delta) * currentSpeed;
 
-                const lerpFactor = Math.min(3.0 * delta, 1.0);
-                currentSpeed += (targetSpeed - currentSpeed) * lerpFactor;
-
-                shaderTime += (0.09 * delta) * currentSpeed;
-
-                let lerpSpeed = 0.05; // Default to the 60fps speed
-
-                if (deltaAccumulator < 0.012) { 
-                    lerpSpeed = 0.025; // 120fps case: cut the speed in half
-                } else {
-                    lerpSpeed = 0.05;  // 60fps (or lower) case: use normal speed
-                }
-        
-                //const time = (performance.now() % 1000000) * 0.000075; 
-                
-                // Just update the two variables for the GPU
                 shaderUniforms.uTime.value = shaderTime;
                 shaderUniforms.uFocus.value.set(
                     Math.sin(shaderTime * 5) * 3, 
@@ -253,12 +242,11 @@
                     mouseMoved = false;
                 }
 
-                light.position.lerp(targetLightPos, lerpSpeed);
-                whiteLight.position.lerp(targetWhiteLightPos, lerpSpeed);
+                const lightLerp = Math.min(4.0 * delta, 1.0);
+                light.position.lerp(targetLightPos, lightLerp);
+                whiteLight.position.lerp(targetWhiteLightPos, lightLerp);
                 
                 renderer.render(scene, camera);
-
-                deltaAccumulator = deltaAccumulator % interval120;
             }
 
             let resizeTimeout;

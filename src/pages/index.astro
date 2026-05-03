@@ -37,25 +37,25 @@ import Analytics from '@vercel/analytics/astro';
 		<Analytics />
 
         <script>
+            // 1. Sync button text when the page loads
             document.addEventListener('astro:page-load', () => {
                 const btn = document.getElementById('engine-btn');
-                
-                if (btn) {
-                    let isPlaying = typeof window.isCanyonPlaying === 'function' ? window.isCanyonPlaying() : false;
+                if (btn && typeof window.isCanyonPlaying === 'function') {
+                    btn.innerText = window.isCanyonPlaying() ? "Pause Engine" : "Start Engine";
+                }
+            });
 
-                    // Set the correct text immediately when the page loads
-                    btn.innerText = isPlaying ? "Pause Engine" : "Start Engine";
+            // 2. Global Event Listener for the click
+            document.addEventListener('click', (e) => {
+                const btn = e.target.closest('#engine-btn');
+                if (!btn) return; 
 
-                    // Attach the click event to the newly generated button
-                    btn.addEventListener('click', () => {
-                        isPlaying = !isPlaying; 
-                        
-                        if (typeof window.playShadowCanyon === 'function') {
-                            window.playShadowCanyon(isPlaying);
-                        }
-
-                        btn.innerText = isPlaying ? "Pause Engine" : "Start Engine";
-                    });
+                if (typeof window.isCanyonPlaying === 'function' && typeof window.playShadowCanyon === 'function') {
+                    const newState = !window.isCanyonPlaying();
+                    window.playShadowCanyon(newState);
+                    btn.innerText = newState ? "Pause Engine" : "Start Engine";
+                } else {
+                    console.error("3D Engine not ready yet.");
                 }
             });
         </script>
@@ -94,7 +94,7 @@ import Analytics from '@vercel/analytics/astro';
         
         border: 1px solid rgba(255, 255, 255, 0.12);
         view-transition-name: main-glass;
-
+        will-change: transform, backdrop-filter;
         /* 2. Force the GPU to render the blur immediately on load */
         -webkit-backface-visibility: hidden;
         backface-visibility: hidden;
