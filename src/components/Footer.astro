@@ -35,6 +35,11 @@ const today = new Date();
         padding: 4em 1em; 
         text-align: center;
 
+		view-transition-name: footer-glass; 
+        
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+        transform: translate3d(0, 0, 0);
         /* The Milky Filter Logic */
         background: rgba(0, 0, 0, 0.3); /* Subtle dark tint to help white text */
         backdrop-filter: blur(12px);     /* Blurs the 3D pillars behind the footer */

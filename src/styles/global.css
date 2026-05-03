@@ -229,7 +229,12 @@ hr {
     
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-top: 1px solid rgba(255, 255, 255, 0.2); /* Makes it pop against the black void */
-    
+    view-transition-name: main-glass;
+
+    /* 2. Force the GPU to render the blur immediately on load */
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    transform: translate3d(0, 0, 0);
     /* 4. Deep Void Shadows */
     box-shadow: 
         0 0 0 1px rgba(0, 0, 0, 0.5),
@@ -317,7 +322,15 @@ hr {
     left: 0;
     width: 100vw;
     height: 100dvh;
-    z-index: -1; 
+    z-index: 0; 
     pointer-events: none;
     display: block;
+}
+header, main, footer {
+    position: relative;
+    z-index: 1;
+}
+
+html, body {
+    background-color: transparent !important;
 }

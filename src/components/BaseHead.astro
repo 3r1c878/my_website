@@ -7,6 +7,9 @@ import FallbackImage from '../assets/blog-placeholder-1.jpg';
 import { SITE_TITLE } from '../consts';
 import { Font } from 'astro:assets';
 
+// NEW: 1. Import the View Transitions router
+import { ClientRouter } from 'astro:transitions';
+
 interface Props {
     title: string;
     description: string;
@@ -31,6 +34,9 @@ const { title, description, image = FallbackImage } = Astro.props;
 />
 <meta name="generator" content={Astro.generator} />
 
+<!-- NEW: 2. Enable Astro View Transitions for the whole site -->
+<ClientRouter />
+
 <Font cssVariable="--font-atkinson" preload />
 
 <link rel="canonical" href={canonicalURL} />
@@ -44,3 +50,6 @@ const { title, description, image = FallbackImage } = Astro.props;
 <meta property="og:title" content={title} />
 <meta property="og:description" content={description} />
 <meta property="og:image" content={new URL(image.src, Astro.url)} />
+
+<!-- NEW: 3. Load Three.js globally, exactly once -->
+<script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>

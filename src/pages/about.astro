@@ -131,7 +131,12 @@ import { Image } from 'astro:assets';
         padding: 3rem;
         text-align: center;
         z-index: 1;
-        
+        view-transition-name: main-glass;
+
+        /* 2. Force the GPU to render the blur immediately on load */
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+        transform: translate3d(0, 0, 0);
         background: rgba(10, 10, 10, 0.4); /* Darker base for better contrast */
         backdrop-filter: blur(20px) saturate(180%); /* Stronger blur + saturation boost */
         -webkit-backdrop-filter: blur(20px) saturate(180%);
@@ -175,7 +180,7 @@ import { Image } from 'astro:assets';
         display: block;
     }
     .hero-image img {
-        width: 100%;
+        width: 50%;
         height: auto;
         border-radius: 32px; /* Matching the card's vibe */
         border: 1px solid rgba(255, 255, 255, 0.1);

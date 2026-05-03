@@ -17,23 +17,10 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 	<head>
 		<BaseHead title={title} description={description} />
 		<style>
-			html, body {
-				background-color: #000000 !important; /* The true base */
-			}
-
 			main, article, .prose {
 				background-color: transparent !important;
 			}
 
-			#webgl-canvas {
-				position: fixed;
-				top: 0;
-				left: 0;
-				width: 100vw;
-				height: 100vh;
-				z-index: 0; /* Move to 0 so it's above the black HTML but below the text */
-				pointer-events: none;
-			}
 			main {
 				width: calc(100% - 2em);
 				max-width: 100%;

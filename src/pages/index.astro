@@ -24,10 +24,41 @@ import Analytics from '@vercel/analytics/astro';
                 <p>
                     Hint: Use a 120Hz monitor for an even smoother animation ;)
                 </p>
+
+                <button id="engine-btn" class="engine-btn">Start Engine</button>
+
+                <p>
+                    Warning: I only recommend running the animation with a good ARM CPU or with a decent dedicated GPU, 
+                    since integrated graphics can struggle to animate this.
+                </p>
 			</section>
 		</main>
 		<Footer />
 		<Analytics />
+
+        <script>
+            document.addEventListener('astro:page-load', () => {
+                const btn = document.getElementById('engine-btn');
+                
+                if (btn) {
+                    let isPlaying = typeof window.isCanyonPlaying === 'function' ? window.isCanyonPlaying() : false;
+
+                    // Set the correct text immediately when the page loads
+                    btn.innerText = isPlaying ? "Pause Engine" : "Start Engine";
+
+                    // Attach the click event to the newly generated button
+                    btn.addEventListener('click', () => {
+                        isPlaying = !isPlaying; 
+                        
+                        if (typeof window.playShadowCanyon === 'function') {
+                            window.playShadowCanyon(isPlaying);
+                        }
+
+                        btn.innerText = isPlaying ? "Pause Engine" : "Start Engine";
+                    });
+                }
+            });
+        </script>
 	</body>
 </html>
 
@@ -39,6 +70,8 @@ import Analytics from '@vercel/analytics/astro';
         height: 100%;
         overflow-x: hidden;
         overscroll-behavior-y: none;
+
+        background-color: transparent;
     }
     main {
         display: flex;
@@ -60,7 +93,12 @@ import Analytics from '@vercel/analytics/astro';
         border-radius: 24px; /* Large, smooth radius */
         
         border: 1px solid rgba(255, 255, 255, 0.12);
+        view-transition-name: main-glass;
 
+        /* 2. Force the GPU to render the blur immediately on load */
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+        transform: translate3d(0, 0, 0);
         box-shadow: 
             0 4px 6px -1px rgba(0, 0, 0, 0.3),
             0 20px 25px -5px rgba(0, 0, 0, 0.4),
@@ -104,6 +142,28 @@ import Analytics from '@vercel/analytics/astro';
         color: rgba(255, 255, 255, 0.8); /* Slightly dimmed for hierarchy */
         font-size: 1.1rem;
     }
+
+    .engine-btn {
+        margin-top: 1.5rem;
+        padding: 0.8rem 2.5rem;
+        background: rgba(255, 255, 255, 0.05);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 50px; /* Pill shape */
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        backdrop-filter: blur(4px);
+        transition: all 0.3s ease;
+    }
+
+    /* Matches the hover aesthetic of the main card */
+    .engine-btn:hover {
+        background: rgba(0, 150, 255, 0.15);
+        border-color: rgba(0, 150, 255, 0.6);
+        box-shadow: 0 0 15px rgba(0, 150, 255, 0.4);
+        transform: translateY(-2px);
+    }
 	/* --- 3. MOBILE RESPONSIVENESS --- */
     @media (max-width: 768px) {
         main {
@@ -127,6 +187,11 @@ import Analytics from '@vercel/analytics/astro';
             text-align: center;
             margin-left: auto;
             margin-right: auto;
+        }
+
+        .engine-btn {
+            width: 100%; /* Make button full width on mobile */
+            margin-top: 1rem;
         }
     }
 </style>
