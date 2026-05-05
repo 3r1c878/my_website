@@ -25,10 +25,13 @@ import Analytics from '@vercel/analytics/astro';
                     Hint: Use a 120Hz monitor for an even smoother animation ;)
                 </p>
 
-                <button id="engine-btn" class="engine-btn">Start Engine</button>
+                <div class="button-group">
+                    <button id="engine-btn" class="engine-btn">Start Engine</button>
+                    <button id="mouse-light-btn" class="engine-btn">Enable Mouse Light</button>
+                </div>
 
-                <p>
-                    Warning: I only recommend running the animation with a good ARM CPU or with a decent dedicated GPU, 
+                <p style="margin-top: 1.5rem; font-size: 0.9rem; opacity: 0.7;">
+                    Warning: I only recommend running the animation or the mouse light with a good ARM CPU or with a decent dedicated GPU, 
                     since integrated graphics can struggle to animate this.
                 </p>
 			</section>
@@ -37,25 +40,48 @@ import Analytics from '@vercel/analytics/astro';
 		<Analytics />
 
         <script>
-            // 1. Sync button text when the page loads
-            document.addEventListener('astro:page-load', () => {
-                const btn = document.getElementById('engine-btn');
-                if (btn && typeof window.isCanyonPlaying === 'function') {
-                    btn.innerText = window.isCanyonPlaying() ? "Pause Engine" : "Start Engine";
+            // 1. Create a dedicated sync function that looks for all button instances
+            function syncCanyonUI() {
+                // querySelectorAll is safer here than getElementById because it avoids 
+                // accidentally grabbing "ghost" elements during the split-second DOM swap
+                const engineBtns = document.querySelectorAll('#engine-btn');
+                const mouseBtns = document.querySelectorAll('#mouse-light-btn');
+
+                if (typeof window.isCanyonPlaying === 'function') {
+                    const isPlaying = window.isCanyonPlaying();
+                    engineBtns.forEach(btn => {
+                        btn.innerText = isPlaying ? "Pause Animation" : "Start Animation";
+                    });
                 }
-            });
 
-            // 2. Global Event Listener for the click
+                if (typeof window.isMouseLightOn === 'function') {
+                    const isLightOn = window.isMouseLightOn();
+                    mouseBtns.forEach(btn => {
+                        btn.innerText = isLightOn ? "Disable Mouse Light" : "Enable Mouse Light";
+                    });
+                }
+            }
+
+            // 2. Sync immediately on first boot
+            syncCanyonUI();
+
+            // 3. Sync automatically every time Astro completes a page transition
+            document.addEventListener('astro:page-load', syncCanyonUI);
+            document.addEventListener('astro:after-swap', syncCanyonUI);
+
+            // 4. Global click listener (avoids Detached DOM node errors)
             document.addEventListener('click', (e) => {
-                const btn = e.target.closest('#engine-btn');
-                if (!btn) return; 
+                const engineBtn = e.target.closest('#engine-btn');
+                if (engineBtn && typeof window.isCanyonPlaying === 'function') {
+                    window.playShadowCanyon(!window.isCanyonPlaying());
+                    syncCanyonUI(); // Force instant visual sync
+                    return;
+                }
 
-                if (typeof window.isCanyonPlaying === 'function' && typeof window.playShadowCanyon === 'function') {
-                    const newState = !window.isCanyonPlaying();
-                    window.playShadowCanyon(newState);
-                    btn.innerText = newState ? "Pause Engine" : "Start Engine";
-                } else {
-                    console.error("3D Engine not ready yet.");
+                const mouseBtn = e.target.closest('#mouse-light-btn');
+                if (mouseBtn && typeof window.isMouseLightOn === 'function') {
+                    window.setMouseLight(!window.isMouseLightOn());
+                    syncCanyonUI(); // Force instant visual sync
                 }
             });
         </script>
@@ -143,13 +169,20 @@ import Analytics from '@vercel/analytics/astro';
         font-size: 1.1rem;
     }
 
-    .engine-btn {
+    .button-group {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
         margin-top: 1.5rem;
+    }
+
+    .engine-btn {
         padding: 0.8rem 2.5rem;
         background: rgba(255, 255, 255, 0.05);
         color: white;
         border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 50px; /* Pill shape */
+        border-radius: 50px;
         font-size: 1rem;
         font-weight: 500;
         cursor: pointer;
@@ -157,7 +190,6 @@ import Analytics from '@vercel/analytics/astro';
         transition: all 0.3s ease;
     }
 
-    /* Matches the hover aesthetic of the main card */
     .engine-btn:hover {
         background: rgba(0, 150, 255, 0.15);
         border-color: rgba(0, 150, 255, 0.6);

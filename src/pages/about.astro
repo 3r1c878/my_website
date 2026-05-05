@@ -79,6 +79,27 @@ import { Image } from 'astro:assets';
 
         <Footer />
 		<Analytics />
+        <script>
+            function setupGlassCardTouch() {
+                const glassCards = document.querySelectorAll('.glass-card');
+                
+                glassCards.forEach(card => {
+                    // Because Astro completely replaces the DOM on page swaps, 
+                    // we don't need to worry about duplicate event listeners.
+                    card.addEventListener('touchstart', () => {
+                        card.classList.add('touch-active');
+                    }, { passive: true });
+
+                    card.addEventListener('touchend', () => {
+                        card.classList.remove('touch-active');
+                    }, { passive: true });
+                    
+                    card.addEventListener('touchcancel', () => {
+                        card.classList.remove('touch-active');
+                    }, { passive: true });
+                });
+            }
+        </script>
     </body>
 </html>
 
@@ -132,7 +153,7 @@ import { Image } from 'astro:assets';
         text-align: center;
         z-index: 1;
         view-transition-name: main-glass;
-
+        will-change: transform, backdrop-filter;
         /* 2. Force the GPU to render the blur immediately on load */
         -webkit-backface-visibility: hidden;
         backface-visibility: hidden;

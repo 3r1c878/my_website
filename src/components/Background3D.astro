@@ -3,6 +3,12 @@
 ---
 <canvas id="webgl-canvas" transition:persist="canyon-bg"></canvas>
 
+<!-- Example UI Buttons -->
+<div class="controls">
+    <button id="engine-btn">Start Engine</button>
+    <button id="mouse-light-btn">Enable Mouse Light</button>
+</div>
+
 <style is:global>
     #webgl-canvas {
         position: fixed;
@@ -12,9 +18,45 @@
         background-color: #050505;
         pointer-events: none;
     }
+    
+    .controls {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        z-index: 10;
+        display: flex;
+        gap: 10px;
+    }
+    button {
+        padding: 8px 16px;
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 6px;
+        cursor: pointer;
+        backdrop-filter: blur(4px);
+    }
+    button:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
 </style>
 
 <script is:inline>
+    // 1. Define Global API IMMEDIATELY so UI buttons never fail
+    if (typeof window.mouseLightIsOn === 'undefined') {
+        window.mouseLightIsOn = false; // Off by default
+    }
+    
+    window.isMouseLightOn = () => !!window.mouseLightIsOn;
+    window.onMouseLightToggle = null; 
+
+    window.setMouseLight = (state) => {
+        window.mouseLightIsOn = state;
+        if (window.onMouseLightToggle) {
+            window.onMouseLightToggle(state);
+        }
+    };
+
     function bootShadowCanyon() {
         if (window.shadowCanyonInitialized) return;
 
@@ -31,18 +73,16 @@
 
             const scene = new THREE.Scene();
             
-            // The camera
             const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 150);
             camera.position.set(15, 18, 15);
             camera.lookAt(0, 0, 0);
 
             const renderer = new THREE.WebGLRenderer({ canvas, antialias: window.innerWidth > 1000 , precision: "mediump", powerPreference: "high-performance"});
             renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25)); // ratio changedd to 1.5 from 2 
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25)); 
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFShadowMap;
 
-            // The mesh
             const size = 35;
             const step = 0.4; 
             const sideCount = Math.floor((size * 2) / step) + 1;
@@ -56,7 +96,6 @@
                 metalness: 0.9
             });
 
-            // The shader
             const shaderUniforms = {
                 uTime: { value: 0 },
                 uFocus: { value: new THREE.Vector2(0, 0) }
@@ -66,7 +105,6 @@
                 shader.uniforms.uTime = shaderUniforms.uTime;
                 shader.uniforms.uFocus = shaderUniforms.uFocus;
 
-                // Add our variables to the top of the GPU shader
                 shader.vertexShader = `
                     uniform float uTime;
                     uniform vec2 uFocus;
@@ -102,12 +140,11 @@
             };
 
             const iMesh = new THREE.InstancedMesh(geometry, material, count);
-            iMesh.geometry.computeBoundingSphere(); // Do this once
+            iMesh.geometry.computeBoundingSphere();
             iMesh.frustumCulled = true;
             iMesh.castShadow = true;
             iMesh.receiveShadow = true;
 
-            // 2. The grid
             const matrix = new THREE.Matrix4();
             let i = 0;
             for (let xi = 0; xi < sideCount; xi++) {
@@ -115,7 +152,7 @@
                     const x = -size + xi * step;
                     const z = -size + zi * step;
                     
-                    matrix.setPosition(x, 0, z); // Initial height is 0
+                    matrix.setPosition(x, 0, z);
                     iMesh.setMatrixAt(i, matrix);
                     i++;
                 }
@@ -124,20 +161,20 @@
             iMesh.instanceMatrix.needsUpdate = true;
             scene.add(iMesh);
 
-            // 3. The lights
             const ambient = new THREE.AmbientLight(0xffffff, 0.2); 
             scene.add(ambient);
 
-            const light = new THREE.PointLight(0x0A84FF, 1500, 500);  //past: 0xffffff, 600, 150
+            const light = new THREE.PointLight(0x0A84FF, 1500, 500); 
+            light.position.set(0, 6, 0); 
             light.castShadow = true;
-            light.shadow.mapSize.set(512, 512); // Dropped to 512 for efficiency
+            light.shadow.mapSize.set(512, 512);
             light.shadow.bias = -0.001;
+            light.visible = window.mouseLightIsOn; 
             scene.add(light);
 
-            const whiteLight = new THREE.PointLight(0xffffff, 400, 300); // past : 0xe0eaff, 400, 150
-            //whiteLight.castShadow = true;
-            //whiteLight.shadow.mapSize.set(512, 512); // also changed to 512 from 1024
-            //whiteLight.shadow.bias = -0.001;
+            const whiteLight = new THREE.PointLight(0xffffff, 400, 300);
+            whiteLight.position.set(0, 8, 0);
+            whiteLight.visible = window.mouseLightIsOn;
             scene.add(whiteLight);
 
             const diagDist = size * 0.7; 
@@ -155,8 +192,6 @@
                 { x: -size, y: 10, z: -size, color: 0xffffff, int:intensity },
                 { x: -8, y: 10, z: size / 2, color: 0xffffff, int:intensity },
                 { x: size / 5, z: -15, y: 10, color: 0xffffff, int: intensity },
-                //{ x: -size / 5, z: 5, y: -size / 5, color: 0xffffff, int: intensity },
-                //{x: 10, z: 10, y: 10, color: 0xffffff, int: intensity},
                 {x: -20, z: -10, y: 10, color: 0xffffff, int: intensity},
             ];
 
@@ -174,79 +209,125 @@
             renderer.toneMapping = THREE.ReinhardToneMapping;
             renderer.toneMappingExposure = 1.8;
 
-            // 4. Mouse
+            let animationFrameId = null; 
+            const clock = new THREE.Clock();
+
+            function requestRender() {
+                if (!animationFrameId) {
+                    clock.getDelta(); 
+                    animate();
+                }
+            }
+
             const mouse = new THREE.Vector2();
             const raycaster = new THREE.Raycaster();
             const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -2);
             const point = new THREE.Vector3();
             const targetLightPos = new THREE.Vector3(0, 6, 0);
             const targetWhiteLightPos = new THREE.Vector3(0, 8, 0);
-
             let mouseMoved = false;
 
-            window.addEventListener('mousemove', (e) => {
+            const onMouseMove = (e) => {
                 mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
                 mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
                 mouseMoved = true; 
-            }, { passive: true });
+                requestRender(); 
+            };
 
-            window.addEventListener('mouseleave', () => {
+            const onMouseLeave = () => {
                 mouse.x = 0; mouse.y = 0;
-            });
+                requestRender();
+            };
 
-            window.addEventListener('mouseout', (e) => {
-                if (!e.relatedTarget || e.relatedTarget === document.documentElement) {
-                    mouse.x = 0; mouse.y = 0;
+            window.onMouseLightToggle = (state) => {
+                light.visible = state;
+                whiteLight.visible = state;
+
+                if (state) {
+                    window.addEventListener('mousemove', onMouseMove, { passive: true });
+                    window.addEventListener('mouseleave', onMouseLeave);
+                    window.addEventListener('mouseout', onMouseLeave);
+                } else {
+                    window.removeEventListener('mousemove', onMouseMove);
+                    window.removeEventListener('mouseleave', onMouseLeave);
+                    window.removeEventListener('mouseout', onMouseLeave);
+                    
+                    targetLightPos.set(0, 6, 0);
+                    targetWhiteLightPos.set(0, 8, 0);
                 }
-            });
+                requestRender(); 
+            };
 
-            let targetSpeed = 0;   // 0 = paused, 1 = playing (starts paused)
-            let currentSpeed = 0;  // Smoothly interpolates towards targetSpeed
-            let shaderTime = 0;    // Manual time accumulator for the GPU
+            if (window.mouseLightIsOn) {
+                window.onMouseLightToggle(true);
+            }
+
+            let targetSpeed = 0;   
+            let currentSpeed = 0;  
+            let shaderTime = 0;    
 
             window.playShadowCanyon = (play) => {
                 targetSpeed = play ? 1 : 0;
+                requestRender(); 
             };
 
             window.isCanyonPlaying = () => {
                 return targetSpeed === 1;
             };
 
-            // 5. The animation loop
-            const clock = new THREE.Clock();
-            let deltaAccumulator = 0;
-            const interval120 = 1 / 120;
-
             function animate() {
-                requestAnimationFrame(animate);
-
                 const delta = Math.min(clock.getDelta(), 0.1); 
                 
                 const engineLerp = Math.min(3.0 * delta, 1.0);
                 currentSpeed += (targetSpeed - currentSpeed) * engineLerp;
-                shaderTime += (0.05 * delta) * currentSpeed;
+                
+                if (targetSpeed === 0 && currentSpeed < 0.005) {
+                    currentSpeed = 0;
+                }
 
+                shaderTime += (0.05 * delta) * currentSpeed;
                 shaderUniforms.uTime.value = shaderTime;
                 shaderUniforms.uFocus.value.set(
                     Math.sin(shaderTime * 5) * 3, 
                     Math.cos(shaderTime * 5) * 3
                 );
 
-                // Interaction Light logic
-                if (mouseMoved) {
-                    raycaster.setFromCamera(mouse, camera);
-                    if (raycaster.ray.intersectPlane(plane, point)) {
-                        targetLightPos.set(point.x, 3, point.z);
-                        targetWhiteLightPos.set(point.x, 4, point.z);
+                let isLightMoving = false;
+                
+                if (window.mouseLightIsOn) {
+                    if (mouseMoved) {
+                        raycaster.setFromCamera(mouse, camera);
+                        if (raycaster.ray.intersectPlane(plane, point)) {
+                            targetLightPos.set(point.x, 3, point.z);
+                            targetWhiteLightPos.set(point.x, 4, point.z);
+                        }
+                        mouseMoved = false;
                     }
-                    mouseMoved = false;
+
+                    const lightDistSq = light.position.distanceToSquared(targetLightPos);
+                    isLightMoving = lightDistSq > 0;
+
+                    if (lightDistSq > 0 && lightDistSq < 0.005) {
+                        light.position.copy(targetLightPos);
+                        whiteLight.position.copy(targetWhiteLightPos);
+                    } else if (lightDistSq > 0) {
+                        const lightLerp = Math.min(4.0 * delta, 1.0);
+                        light.position.lerp(targetLightPos, lightLerp);
+                        whiteLight.position.lerp(targetWhiteLightPos, lightLerp);
+                    }
                 }
 
-                const lightLerp = Math.min(4.0 * delta, 1.0);
-                light.position.lerp(targetLightPos, lightLerp);
-                whiteLight.position.lerp(targetWhiteLightPos, lightLerp);
-                
                 renderer.render(scene, camera);
+
+                // FIX: Check targetSpeed so it doesn't accidentally cancel its own wake-up
+                const isEngineActive = targetSpeed > 0 || currentSpeed > 0;
+
+                if (!isEngineActive && !isLightMoving) {
+                    animationFrameId = null;
+                    return; 
+                }
+
+                animationFrameId = requestAnimationFrame(animate);
             }
 
             let resizeTimeout;
@@ -256,15 +337,15 @@
                     camera.aspect = window.innerWidth / window.innerHeight;
                     camera.updateProjectionMatrix();
                     renderer.setSize(window.innerWidth, window.innerHeight);
+                    requestRender(); 
                 }, 100);
             }, { passive: true });
 
-            animate();
+            requestRender(); 
         }
 
         initShadowCanyon();
     }
 
     bootShadowCanyon();
-    //document.addEventListener('astro:after-swap', initShadowCanyon);
 </script>
