@@ -3,12 +3,6 @@
 ---
 <canvas id="webgl-canvas" transition:persist="canyon-bg"></canvas>
 
-<!-- Example UI Buttons -->
-<div class="controls">
-    <button id="engine-btn">Start Engine</button>
-    <button id="mouse-light-btn">Enable Mouse Light</button>
-</div>
-
 <style is:global>
     #webgl-canvas {
         position: fixed;
@@ -17,27 +11,6 @@
         z-index: 0;
         background-color: #050505;
         pointer-events: none;
-    }
-    
-    .controls {
-        position: fixed;
-        bottom: 20px;
-        left: 20px;
-        z-index: 10;
-        display: flex;
-        gap: 10px;
-    }
-    button {
-        padding: 8px 16px;
-        background: rgba(255, 255, 255, 0.1);
-        color: white;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 6px;
-        cursor: pointer;
-        backdrop-filter: blur(4px);
-    }
-    button:hover {
-        background: rgba(255, 255, 255, 0.2);
     }
 </style>
 
@@ -262,9 +235,56 @@
                 window.onMouseLightToggle(true);
             }
 
+            // Mobile Touch Handlers
+            const onTouchMove = (e) => {
+                if (e.touches.length > 0) {
+                    mouse.x = (e.touches[0].clientX / window.innerWidth) * 2 - 1;
+                    mouse.y = -(e.touches[0].clientY / window.innerHeight) * 2 + 1;
+                    mouseMoved = true; 
+                    requestRender(); 
+                }
+            };
+
+            // Hook up the toggle logic to add/remove listeners
+            window.onMouseLightToggle = (state) => {
+                light.visible = state;
+                whiteLight.visible = state;
+
+                if (state) {
+                    // Mouse Listeners
+                    window.addEventListener('mousemove', onMouseMove, { passive: true });
+                    window.addEventListener('mouseleave', onMouseLeave);
+                    window.addEventListener('mouseout', onMouseLeave);
+                    
+                    // Touch Listeners (passive: true ensures we don't block page scrolling)
+                    window.addEventListener('touchstart', onTouchMove, { passive: true });
+                    window.addEventListener('touchmove', onTouchMove, { passive: true });
+                    window.addEventListener('touchend', onMouseLeave, { passive: true });
+                    window.addEventListener('touchcancel', onMouseLeave, { passive: true });
+                } else {
+                    // Remove Mouse Listeners
+                    window.removeEventListener('mousemove', onMouseMove);
+                    window.removeEventListener('mouseleave', onMouseLeave);
+                    window.removeEventListener('mouseout', onMouseLeave);
+                    
+                    // Remove Touch Listeners
+                    window.removeEventListener('touchstart', onTouchMove);
+                    window.removeEventListener('touchmove', onTouchMove);
+                    window.removeEventListener('touchend', onMouseLeave);
+                    window.removeEventListener('touchcancel', onMouseLeave);
+                    
+                    // Reset Light Position
+                    targetLightPos.set(0, 6, 0);
+                    targetWhiteLightPos.set(0, 8, 0);
+                }
+                requestRender(); 
+            };
+
             let targetSpeed = 0;   
             let currentSpeed = 0;  
             let shaderTime = 0;    
+
+            let framesRendered = 0;
 
             window.playShadowCanyon = (play) => {
                 targetSpeed = play ? 1 : 0;
@@ -276,6 +296,7 @@
             };
 
             function animate() {
+                framesRendered++;
                 const delta = Math.min(clock.getDelta(), 0.1); 
                 
                 const engineLerp = Math.min(3.0 * delta, 1.0);
@@ -319,10 +340,9 @@
 
                 renderer.render(scene, camera);
 
-                // FIX: Check targetSpeed so it doesn't accidentally cancel its own wake-up
                 const isEngineActive = targetSpeed > 0 || currentSpeed > 0;
 
-                if (!isEngineActive && !isLightMoving) {
+                if (!isEngineActive && !isLightMoving && framesRendered > 300) {
                     animationFrameId = null;
                     return; 
                 }
@@ -348,4 +368,67 @@
     }
 
     bootShadowCanyon();
+</script>
+
+<script>
+    function syncCanyonUI() {
+        const engineBtns = document.querySelectorAll('#engine-btn');
+        const mouseBtns = document.querySelectorAll('#mouse-light-btn');
+
+        if (typeof window.isCanyonPlaying === 'function') {
+            const isPlaying = window.isCanyonPlaying();
+            engineBtns.forEach(btn => {
+                btn.innerText = isPlaying ? "Pause Animation" : "Start Animation";
+            });
+        }
+
+        if (typeof window.isMouseLightOn === 'function') {
+            const isLightOn = window.isMouseLightOn();
+            mouseBtns.forEach(btn => {
+                btn.innerText = isLightOn ? "Disable Mouse Light" : "Enable Mouse Light";
+            });
+        }
+    }
+
+    function setupGlassCardTouch() {
+        const glassCards = document.querySelectorAll('.glass-card');
+        
+        glassCards.forEach(card => {
+            card.addEventListener('touchstart', () => {
+                card.classList.add('touch-active');
+            }, { passive: true });
+
+            card.addEventListener('touchend', () => {
+                card.classList.remove('touch-active');
+            }, { passive: true });
+            
+            card.addEventListener('touchcancel', () => {
+                card.classList.remove('touch-active');
+            }, { passive: true });
+        });
+    }
+
+    syncCanyonUI();
+
+    document.addEventListener('astro:page-load', () => {
+        syncCanyonUI();
+        setupGlassCardTouch(); 
+    });
+    
+    document.addEventListener('astro:after-swap', syncCanyonUI);
+
+    document.addEventListener('click', (e) => {
+        const engineBtn = e.target.closest('#engine-btn');
+        if (engineBtn && typeof window.isCanyonPlaying === 'function') {
+            window.playShadowCanyon(!window.isCanyonPlaying());
+            syncCanyonUI(); 
+            return;
+        }
+
+        const mouseBtn = e.target.closest('#mouse-light-btn');
+        if (mouseBtn && typeof window.isMouseLightOn === 'function') {
+            window.setMouseLight(!window.isMouseLightOn());
+            syncCanyonUI(); 
+        }
+    });
 </script>

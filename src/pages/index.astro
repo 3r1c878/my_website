@@ -38,53 +38,6 @@ import Analytics from '@vercel/analytics/astro';
 		</main>
 		<Footer />
 		<Analytics />
-
-        <script>
-            // 1. Create a dedicated sync function that looks for all button instances
-            function syncCanyonUI() {
-                // querySelectorAll is safer here than getElementById because it avoids 
-                // accidentally grabbing "ghost" elements during the split-second DOM swap
-                const engineBtns = document.querySelectorAll('#engine-btn');
-                const mouseBtns = document.querySelectorAll('#mouse-light-btn');
-
-                if (typeof window.isCanyonPlaying === 'function') {
-                    const isPlaying = window.isCanyonPlaying();
-                    engineBtns.forEach(btn => {
-                        btn.innerText = isPlaying ? "Pause Animation" : "Start Animation";
-                    });
-                }
-
-                if (typeof window.isMouseLightOn === 'function') {
-                    const isLightOn = window.isMouseLightOn();
-                    mouseBtns.forEach(btn => {
-                        btn.innerText = isLightOn ? "Disable Mouse Light" : "Enable Mouse Light";
-                    });
-                }
-            }
-
-            // 2. Sync immediately on first boot
-            syncCanyonUI();
-
-            // 3. Sync automatically every time Astro completes a page transition
-            document.addEventListener('astro:page-load', syncCanyonUI);
-            document.addEventListener('astro:after-swap', syncCanyonUI);
-
-            // 4. Global click listener (avoids Detached DOM node errors)
-            document.addEventListener('click', (e) => {
-                const engineBtn = e.target.closest('#engine-btn');
-                if (engineBtn && typeof window.isCanyonPlaying === 'function') {
-                    window.playShadowCanyon(!window.isCanyonPlaying());
-                    syncCanyonUI(); // Force instant visual sync
-                    return;
-                }
-
-                const mouseBtn = e.target.closest('#mouse-light-btn');
-                if (mouseBtn && typeof window.isMouseLightOn === 'function') {
-                    window.setMouseLight(!window.isMouseLightOn());
-                    syncCanyonUI(); // Force instant visual sync
-                }
-            });
-        </script>
 	</body>
 </html>
 
@@ -152,6 +105,24 @@ import Analytics from '@vercel/analytics/astro';
                 /* 3. The physical drop shadows keeping it "lifted" */
                 0 10px 15px -3px rgba(0, 0, 0, 0.4),
                 0 25px 35px -5px rgba(0, 0, 0, 0.5);
+    }
+
+    .glass-card.touch-active {
+        transform: translateY(-4px) translateZ(0); 
+        border-color: rgba(0, 150, 255, 0.6); 
+
+        box-shadow: 
+            /* 1. SUBTLE INNER FROSTED BLUE */
+            inset 0 0 20px 2px rgba(0, 150, 255, 0.15),
+            inset 0 0 5px 1px rgba(0, 150, 255, 0.3), 
+            
+            /* 2. PROMINENT OUTER FROSTED BLUE */
+            0 0 20px 5px rgba(0, 150, 255, 0.3), 
+            0 0 50px 15px rgba(0, 150, 255, 0.2),
+            
+            /* 3. The physical drop shadows keeping it "lifted" */
+            0 10px 15px -3px rgba(0, 0, 0, 0.4),
+            0 25px 35px -5px rgba(0, 0, 0, 0.5);
     }
 
     h1 {
